@@ -2,7 +2,7 @@
 
 > **Predict, analyze, and reduce food waste in institutional mess facilities using Machine Learning.**
 
-An intelligent system built for Jaiswal Mess at IIT Gandhinagar that analyzes daily mess food waste patterns (March 2026), provides detailed exploratory data analysis, and predicts future waste based on menu items — helping mess managers optimize food preparation and minimize waste.
+An system built for Jaiswal Mess at IIT Gandhinagar that analyzes daily mess food waste patterns (March 2026), provides detailed exploratory data analysis, and predicts future waste based on menu items — helping mess managers optimize food preparation and minimize waste.
 
 ---
 
