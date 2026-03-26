@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from model import load_and_merge
+from main import load_and_merge
 
 
 def waste_trend_plot():

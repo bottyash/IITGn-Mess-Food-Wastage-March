@@ -1,7 +1,7 @@
 import gradio as gr
 import pandas as pd
-from model import train_model, predict
-from utils import waste_trend_plot, meal_wise_plot, menu_impact
+from main import train_model, predict
+from utility import waste_trend_plot, meal_wise_plot, menu_impact
 
 # Train model once
 train_model()
