@@ -1,10 +1,12 @@
 import gradio as gr
 from utility import *
 from model import WasteModel
+from eda import WasteEDA
 
 # LOAD FILES (your existing names)
-menu_df = load_csv("menu.csv")
+menu_df = load_csv("clean_menu.csv")
 waste_df = load_csv("food-wastage.csv")
+eda = WasteEDA(df)
 
 # PROCESS
 menu_df = process_menu(menu_df)
@@ -46,6 +48,23 @@ with gr.Blocks(title="Smart Mess Optimization System") as app:
 
     with gr.Tab("Menu Impact"):
         gr.Plot(model.get_food_impact)
+    with gr.Tab("EDA Insights"):
+
+    gr.Markdown("## 📊 Exploratory Data Analysis")
+
+    gr.Plot(eda.plot_trend)
+    gr.Plot(eda.plot_meal_distribution)
+    gr.Plot(eda.plot_distribution)
+    gr.Plot(eda.plot_correlation)
+
+    top_days = gr.Dataframe(label="Top Waste Days")
+
+    btn = gr.Button("Show Top Waste Days")
+
+    def get_top_days():
+        return eda.top_waste_days()
+
+    btn.click(get_top_days, outputs=top_days)
 
 
 app.launch(server_name="0.0.0.0", server_port=7860)
