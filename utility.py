@@ -1,45 +1,91 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-from main import load_and_merge
+import re
+from datetime import datetime, timedelta
 
 
-def waste_trend_plot():
-    df = pd.read_csv("food-wastage.csv")
-
-    plt.figure()
-    plt.plot(df["Date"], df["Total_waste"])
-    plt.xticks(rotation=45)
-    plt.title("Total Waste Trend")
-    plt.tight_layout()
-
-    path = "trend.png"
-    plt.savefig(path)
-    plt.close()
-
-    return path
+def load_csv(file_path):
+    try:
+        return pd.read_csv(file_path, encoding="utf-8")
+    except:
+        return pd.read_csv(file_path, encoding="latin1")
 
 
-def meal_wise_plot():
-    df = pd.read_csv("food-wastage.csv")
-
-    plt.figure()
-    plt.plot(df["Breakfast_waste"], label="Breakfast")
-    plt.plot(df["Lunch_waste"], label="Lunch")
-    plt.plot(df["Snacks_waste"], label="Snacks")
-    plt.plot(df["Dinner_waste"], label="Dinner")
-    plt.legend()
-    plt.title("Meal-wise Waste")
-
-    path = "meals.png"
-    plt.savefig(path)
-    plt.close()
-
-    return path
+def clean_columns(df):
+    df.columns = [col.strip().lower() for col in df.columns]
+    return df
 
 
-def menu_impact():
-    df = load_and_merge()
+def clean_text(text):
+    if pd.isna(text):
+        return ""
+    text = str(text).lower()
+    text = re.sub(r"[+/,\-]", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
 
-    impact = df.groupby("Lunch_item")["Total_waste"].mean().sort_values(ascending=False)
 
-    return impact.head(5).to_string()
+def process_menu(menu_df):
+    menu_df = clean_columns(menu_df)
+
+    grouped = (
+        menu_df.groupby(["day", "meal_type"])["food_item"]
+        .apply(lambda x: " ".join(x))
+        .reset_index()
+    )
+
+    pivot = grouped.pivot(index="day", columns="meal_type", values="food_item").reset_index()
+
+    # Handle dynamic column order safely
+    pivot.columns.name = None
+
+    # Normalize column names
+    pivot.columns = [col.lower() for col in pivot.columns]
+
+    for col in ["breakfast", "lunch", "snacks", "dinner"]:
+        if col not in pivot.columns:
+            pivot[col] = ""
+
+    for col in ["breakfast", "lunch", "snacks", "dinner"]:
+        pivot[col] = pivot[col].apply(clean_text)
+
+    return pivot
+
+
+def map_day_to_date(menu_df, start_date="2026-03-01"):
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+
+    day_mapping = {
+        "monday": 0,
+        "tuesday": 1,
+        "wednesday": 2,
+        "thursday": 3,
+        "friday": 4,
+        "saturday": 5,
+        "sunday": 6,
+    }
+
+    menu_df["day"] = menu_df["day"].str.lower()
+
+    menu_df["date"] = menu_df["day"].map(
+        lambda d: start + timedelta(days=day_mapping.get(d, 0))
+    )
+
+    return menu_df
+
+
+def merge_data(menu_df, waste_df):
+    waste_df = clean_columns(waste_df)
+    waste_df["date"] = pd.to_datetime(waste_df["date"], errors="coerce")
+
+    merged = pd.merge(menu_df, waste_df, on="date", how="inner")
+    return merged
+
+
+def create_text_feature(df):
+    df["menu_text"] = (
+        df["breakfast"] + " " +
+        df["lunch"] + " " +
+        df["snacks"] + " " +
+        df["dinner"]
+    )
+    return df

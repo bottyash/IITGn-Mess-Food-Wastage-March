@@ -1,61 +1,51 @@
 import gradio as gr
-import pandas as pd
-from main import train_model, predict
-from utility import waste_trend_plot, meal_wise_plot, menu_impact
+from utility import *
+from model import WasteModel
 
-# Train model once
-train_model()
+# LOAD FILES (your existing names)
+menu_df = load_csv("menu.csv")
+waste_df = load_csv("food-wastage.csv")
 
-# Load menu for dropdowns
-menu_df = pd.read_excel("menu.xlsx", header=None)
+# PROCESS
+menu_df = process_menu(menu_df)
+menu_df = map_day_to_date(menu_df)
 
-# Extract unique food items (basic fallback)
-options = ["idli", "poha", "paratha", "rice", "dal", "paneer", "khichdi", "samosa", "tea", "pakoda"]
+df = merge_data(menu_df, waste_df)
+df = create_text_feature(df)
+
+# TRAIN MODEL
+model = WasteModel()
+model.train(df)
+
 
 def predict_waste(b, l, s, d):
-    menu = {
-        "Breakfast_item": b,
-        "Lunch_item": l,
-        "Snacks_item": s,
-        "Dinner_item": d
-    }
-
-    pred = predict(menu)
-
-    if pred > 35:
-        insight = " High waste expected"
-    elif pred < 25:
-        insight = "Low waste (good menu)"
-    else:
-        insight = "Moderate waste"
-
-    return f"{round(pred,2)} kg", insight
+    pred = model.predict(b, l, s, d)
+    insight = model.get_insight(pred)
+    return pred, insight
 
 
-with gr.Blocks(title="Smart Mess AI") as app:
-
-    gr.Markdown("#Smart Mess Optimization System")
+with gr.Blocks(title="Smart Mess Optimization System") as app:
 
     with gr.Tab("Prediction"):
-        b = gr.Dropdown(options, label="Breakfast")
-        l = gr.Dropdown(options, label="Lunch")
-        s = gr.Dropdown(options, label="Snacks")
-        d = gr.Dropdown(options, label="Dinner")
+        b = gr.Textbox(label="Breakfast")
+        l = gr.Textbox(label="Lunch")
+        s = gr.Textbox(label="Snacks")
+        d = gr.Textbox(label="Dinner")
+
+        out1 = gr.Number(label="Predicted Waste")
+        out2 = gr.Textbox(label="Insight")
 
         btn = gr.Button("Predict")
-
-        out = gr.Textbox(label="Predicted Waste")
-        insight = gr.Textbox(label="Insight")
-
-        btn.click(predict_waste, inputs=[b,l,s,d], outputs=[out,insight])
+        btn.click(predict_waste, inputs=[b, l, s, d], outputs=[out1, out2])
 
     with gr.Tab("Trends"):
-        gr.Image(waste_trend_plot)
+        gr.Plot(model.get_trend_plot)
 
     with gr.Tab("Meal Analysis"):
-        gr.Image(meal_wise_plot)
+        gr.Plot(model.get_meal_plot)
 
     with gr.Tab("Menu Impact"):
-        gr.Textbox(menu_impact())
+        gr.Plot(model.get_food_impact)
 
-app.launch()
+
+app.launch(server_name="0.0.0.0", server_port=7860)
