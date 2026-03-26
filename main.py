@@ -5,7 +5,7 @@ import pickle
 
 # -------- MENU PARSER --------
 def parse_menu():
-    df = pd.read_excel("Mess Menu March'26.xlsx", header=None)
+    df = pd.read_excel("menu.xlsx", header=None)
 
     structured_data = []
     i = 0

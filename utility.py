@@ -4,7 +4,7 @@ from model import load_and_merge
 
 
 def waste_trend_plot():
-    df = pd.read_csv("data/food_waste.csv")
+    df = pd.read_csv("food-wastage.csv")
 
     plt.figure()
     plt.plot(df["Date"], df["Total_waste"])
@@ -20,7 +20,7 @@ def waste_trend_plot():
 
 
 def meal_wise_plot():
-    df = pd.read_csv("data/food_waste.csv")
+    df = pd.read_csv("food-wastage.csv")
 
     plt.figure()
     plt.plot(df["Breakfast_waste"], label="Breakfast")
