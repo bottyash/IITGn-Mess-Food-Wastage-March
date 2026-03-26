@@ -50,21 +50,21 @@ with gr.Blocks(title="Smart Mess Optimization System") as app:
         gr.Plot(model.get_food_impact)
     with gr.Tab("EDA Insights"):
 
-    gr.Markdown("## 📊 Exploratory Data Analysis")
+        gr.Markdown("## 📊 Exploratory Data Analysis")
 
-    gr.Plot(eda.plot_trend)
-    gr.Plot(eda.plot_meal_distribution)
-    gr.Plot(eda.plot_distribution)
-    gr.Plot(eda.plot_correlation)
+        gr.Plot(eda.plot_trend)
+        gr.Plot(eda.plot_meal_distribution)
+        gr.Plot(eda.plot_distribution)
+        gr.Plot(eda.plot_correlation)
 
-    top_days = gr.Dataframe(label="Top Waste Days")
+        top_days = gr.Dataframe(label="Top Waste Days")
 
-    btn = gr.Button("Show Top Waste Days")
+        btn = gr.Button("Show Top Waste Days")
 
-    def get_top_days():
-        return eda.top_waste_days()
+        def get_top_days():
+            return eda.top_waste_days()
 
-    btn.click(get_top_days, outputs=top_days)
+        btn.click(get_top_days, outputs=top_days)
 
 
 app.launch(server_name="0.0.0.0", server_port=7860)
