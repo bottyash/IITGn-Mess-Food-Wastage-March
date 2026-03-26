@@ -67,4 +67,4 @@ with gr.Blocks(title="Smart Mess Optimization System") as app:
         btn.click(get_top_days, outputs=top_days)
 
 
-app.launch(server_name="0.0.0.0", server_port=7860)
+app.launch(server_name="localhost", server_port=7860)
