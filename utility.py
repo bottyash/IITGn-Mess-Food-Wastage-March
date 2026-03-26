@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 def load_csv(file_path):
     try:
         return pd.read_csv(file_path, encoding="utf-8")
-    except:
+    except Exception:
         return pd.read_csv(file_path, encoding="latin1")
 
 
@@ -35,10 +35,7 @@ def process_menu(menu_df):
 
     pivot = grouped.pivot(index="day", columns="meal_type", values="food_item").reset_index()
 
-    # Handle dynamic column order safely
     pivot.columns.name = None
-
-    # Normalize column names
     pivot.columns = [col.lower() for col in pivot.columns]
 
     for col in ["breakfast", "lunch", "snacks", "dinner"]:
@@ -73,9 +70,16 @@ def map_day_to_date(menu_df, start_date="2026-03-01"):
     return menu_df
 
 
+def get_day_name(date):
+    """Extract the day name from a date."""
+    if pd.isna(date):
+        return ""
+    return pd.to_datetime(date).strftime("%A")
+
+
 def merge_data(menu_df, waste_df):
     waste_df = clean_columns(waste_df)
-    waste_df["date"] = pd.to_datetime(waste_df["date"], errors="coerce")
+    waste_df["date"] = pd.to_datetime(waste_df["date"], format="%d-%m-%y", errors="coerce")
 
     merged = pd.merge(menu_df, waste_df, on="date", how="inner")
     return merged
